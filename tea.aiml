@@ -1,0 +1,256 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<aiml version='1.0.1' encoding='UTF-8'>
+
+<!-- =====================================================================
+     TEA ORDERING ASSISTANT  (AIML 1.0.1)
+     States are tracked with the 'topic' predicate:
+       (no topic)  -> waiting for the user to say hello      (Start)
+       CHOOSETEA   -> asked 'Which tea would you like?'
+       CHOOSEADDON -> asked 'Do you need Sugar or Sweetener?'
+     The chosen tea is remembered in the predicate 'tea'.
+     ===================================================================== -->
+
+
+<!-- ===================== 1. ONBOARDING (Start: Hello!) ===================== -->
+
+<category>
+  <pattern>START ORDER</pattern>
+  <template>
+    <think>
+      <set name='topic'>CHOOSETEA</set>
+      <set name='tea'>unknown</set>
+    </think>
+    Hello! Welcome to the Tea Ordering Assistant. I can make Green Tea, Black Tea or Regular Tea. Which tea would you like? (You can type 'cancel' at any time to stop.)
+  </template>
+</category>
+
+<category><pattern>HELLO</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>HELLO *</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>HI</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>HI *</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>HEY</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>START</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>RESTART</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>ORDER</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>I WANT TEA</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>I WOULD LIKE TEA</pattern><template><srai>START ORDER</srai></template></category>
+<category><pattern>CAN I HAVE TEA</pattern><template><srai>START ORDER</srai></template></category>
+
+<!-- Anything else when no order is in progress - gently re-onboard (error handling) -->
+<category>
+  <pattern>*</pattern>
+  <template>
+    <random>
+      <li>I am a tea ordering assistant, so I may not understand that.</li>
+      <li>Sorry, I can only help with ordering tea.</li>
+    </random>
+    <srai>START ORDER</srai>
+  </template>
+</category>
+
+
+<!-- ===================== 2. GLOBAL COMMANDS (work in every state) ===================== -->
+
+<category>
+  <pattern>CANCEL</pattern>
+  <template>
+    <think><set name='topic'></set></think>
+    Okay, I have cancelled your order. Say 'hello' whenever you want a tea.
+  </template>
+</category>
+<category><pattern>STOP</pattern><template><srai>CANCEL</srai></template></category>
+<category><pattern>QUIT</pattern><template><srai>CANCEL</srai></template></category>
+<category><pattern>EXIT</pattern><template><srai>CANCEL</srai></template></category>
+<category><pattern>BYE</pattern><template><srai>CANCEL</srai></template></category>
+<category><pattern>GOODBYE</pattern><template><srai>CANCEL</srai></template></category>
+<category><pattern>NO THANKS</pattern><template><srai>CANCEL</srai></template></category>
+
+<category>
+  <pattern>HELP</pattern>
+  <template>
+    I can serve Green Tea, Black Tea or Regular Tea. Black and Regular tea can be made with sugar or with sweetener. Type 'hello' to start a new order or 'cancel' to stop.
+  </template>
+</category>
+<category><pattern>MENU</pattern><template><srai>HELP</srai></template></category>
+
+<category>
+  <pattern>THANK YOU</pattern>
+  <template>You are welcome! Say 'hello' if you want another tea.</template>
+</category>
+<category><pattern>THANKS</pattern><template><srai>THANK YOU</srai></template></category>
+
+
+<!-- ===================== 3. STATE: CHOOSETEA  ('Which tea would you like?') ===================== -->
+
+<topic name='CHOOSETEA'>
+
+  <!-- Green Tea -> Dispense Green Tea -> Enjoy your Tea! -->
+  <category><pattern>GREEN</pattern><template><srai>CHOSE GREEN</srai></template></category>
+  <category><pattern>GREEN *</pattern><template><srai>CHOSE GREEN</srai></template></category>
+  <category><pattern>* GREEN</pattern><template><srai>CHOSE GREEN</srai></template></category>
+  <category><pattern>* GREEN *</pattern><template><srai>CHOSE GREEN</srai></template></category>
+  <category>
+    <pattern>CHOSE GREEN</pattern>
+    <template>
+      <think><set name='topic'></set></think>
+      Dispensing Green Tea... Enjoy your Tea! (Say 'hello' to order again.)
+    </template>
+  </category>
+
+  <!-- Black Tea -> ask sugar or sweetener -->
+  <category><pattern>BLACK</pattern><template><srai>CHOSE BLACK</srai></template></category>
+  <category><pattern>BLACK *</pattern><template><srai>CHOSE BLACK</srai></template></category>
+  <category><pattern>* BLACK</pattern><template><srai>CHOSE BLACK</srai></template></category>
+  <category><pattern>* BLACK *</pattern><template><srai>CHOSE BLACK</srai></template></category>
+  <category>
+    <pattern>CHOSE BLACK</pattern>
+    <template>
+      <think>
+        <set name='tea'>Black</set>
+        <set name='topic'>CHOOSEADDON</set>
+      </think>
+      Black Tea, nice choice. Do you need Sugar or Sweetener?
+    </template>
+  </category>
+
+  <!-- Regular Tea -> ask sugar or sweetener -->
+  <category><pattern>REGULAR</pattern><template><srai>CHOSE REGULAR</srai></template></category>
+  <category><pattern>REGULAR *</pattern><template><srai>CHOSE REGULAR</srai></template></category>
+  <category><pattern>* REGULAR</pattern><template><srai>CHOSE REGULAR</srai></template></category>
+  <category><pattern>* REGULAR *</pattern><template><srai>CHOSE REGULAR</srai></template></category>
+  <category>
+    <pattern>CHOSE REGULAR</pattern>
+    <template>
+      <think>
+        <set name='tea'>Regular</set>
+        <set name='topic'>CHOOSEADDON</set>
+      </think>
+      Regular Tea, nice choice. Do you need Sugar or Sweetener?
+    </template>
+  </category>
+
+  <!-- Negation handling: 'not green', 'I don't want black' -> do not guess -->
+  <category><pattern>NO</pattern><template><srai>ASK AGAIN TEA</srai></template></category>
+  <category><pattern>NO *</pattern><template><srai>ASK AGAIN TEA</srai></template></category>
+  <category><pattern>NOT *</pattern><template><srai>NEGATION TEA</srai></template></category>
+  <category><pattern>* NOT *</pattern><template><srai>NEGATION TEA</srai></template></category>
+  <category><pattern>* DON T *</pattern><template><srai>NEGATION TEA</srai></template></category>
+  <category><pattern>DON T *</pattern><template><srai>NEGATION TEA</srai></template></category>
+  <category><pattern>* DONT *</pattern><template><srai>NEGATION TEA</srai></template></category>
+  <category><pattern>DONT *</pattern><template><srai>NEGATION TEA</srai></template></category>
+  <category>
+    <pattern>NEGATION TEA</pattern>
+    <template>
+      Got it, I will not make that one. Please tell me which tea you DO want: Green Tea, Black Tea or Regular Tea.
+    </template>
+  </category>
+  <category>
+    <pattern>ASK AGAIN TEA</pattern>
+    <template>
+      No problem. Which tea would you like: Green Tea, Black Tea or Regular Tea?
+    </template>
+  </category>
+
+  <!-- Error handling: unknown or multiple choices -->
+  <category><pattern>BOTH</pattern><template><srai>TOO MANY TEAS</srai></template></category>
+  <category><pattern>GREEN AND *</pattern><template><srai>TOO MANY TEAS</srai></template></category>
+  <category><pattern>BLACK AND *</pattern><template><srai>TOO MANY TEAS</srai></template></category>
+  <category><pattern>REGULAR AND *</pattern><template><srai>TOO MANY TEAS</srai></template></category>
+  <category><pattern>* GREEN AND *</pattern><template><srai>TOO MANY TEAS</srai></template></category>
+  <category><pattern>* BLACK AND *</pattern><template><srai>TOO MANY TEAS</srai></template></category>
+  <category><pattern>* REGULAR AND *</pattern><template><srai>TOO MANY TEAS</srai></template></category>
+  <category>
+    <pattern>TOO MANY TEAS</pattern>
+    <template>I can make only one tea at a time. Please choose one: Green Tea, Black Tea or Regular Tea.</template>
+  </category>
+  <category>
+    <pattern>*</pattern>
+    <template>
+      <random>
+        <li>Sorry, I did not understand that. Please choose Green Tea, Black Tea or Regular Tea.</li>
+        <li>Hmm, that is not on my menu. Which would you like: Green Tea, Black Tea or Regular Tea?</li>
+        <li>I did not catch that. Please reply with Green, Black or Regular.</li>
+      </random>
+    </template>
+  </category>
+
+</topic>
+
+
+<!-- ===================== 4. STATE: CHOOSEADDON  ('Do you need Sugar or Sweetener?') ===================== -->
+
+<topic name='CHOOSEADDON'>
+
+  <!-- Sugar -> Dispense <tea> Tea with Sugar -> Enjoy your Tea! -->
+  <category><pattern>SUGAR</pattern><template><srai>CHOSE SUGAR</srai></template></category>
+  <category><pattern>SUGAR *</pattern><template><srai>CHOSE SUGAR</srai></template></category>
+  <category><pattern>* SUGAR</pattern><template><srai>CHOSE SUGAR</srai></template></category>
+  <category><pattern>* SUGAR *</pattern><template><srai>CHOSE SUGAR</srai></template></category>
+  <category>
+    <pattern>CHOSE SUGAR</pattern>
+    <template>
+      <think><set name='topic'></set></think>
+      Dispensing <get name='tea'/> Tea with Sugar... Enjoy your Tea! (Say 'hello' to order again.)
+    </template>
+  </category>
+
+  <!-- Sweetener -> Dispense <tea> Tea with Sweetener -> Enjoy your Tea! -->
+  <category><pattern>SWEETENER</pattern><template><srai>CHOSE SWEETENER</srai></template></category>
+  <category><pattern>SWEETENER *</pattern><template><srai>CHOSE SWEETENER</srai></template></category>
+  <category><pattern>* SWEETENER</pattern><template><srai>CHOSE SWEETENER</srai></template></category>
+  <category><pattern>* SWEETENER *</pattern><template><srai>CHOSE SWEETENER</srai></template></category>
+  <category>
+    <pattern>CHOSE SWEETENER</pattern>
+    <template>
+      <think><set name='topic'></set></think>
+      Dispensing <get name='tea'/> Tea with Sweetener... Enjoy your Tea! (Say 'hello' to order again.)
+    </template>
+  </category>
+
+  <!-- Negation / 'none': the workflow only offers sugar or sweetener -->
+  <category><pattern>NO</pattern><template><srai>ONLY TWO OPTIONS</srai></template></category>
+  <category><pattern>NO *</pattern><template><srai>ONLY TWO OPTIONS</srai></template></category>
+  <category><pattern>NONE</pattern><template><srai>ONLY TWO OPTIONS</srai></template></category>
+  <category><pattern>NOT *</pattern><template><srai>NEGATION SWEET</srai></template></category>
+  <category><pattern>* NOT *</pattern><template><srai>NEGATION SWEET</srai></template></category>
+  <category><pattern>* DON T *</pattern><template><srai>NEGATION SWEET</srai></template></category>
+  <category><pattern>DON T *</pattern><template><srai>NEGATION SWEET</srai></template></category>
+  <category><pattern>* DONT *</pattern><template><srai>NEGATION SWEET</srai></template></category>
+  <category><pattern>DONT *</pattern><template><srai>NEGATION SWEET</srai></template></category>
+  <category>
+    <pattern>ONLY TWO OPTIONS</pattern>
+    <template>
+      Sorry, I can add only Sugar or Sweetener to your <get name='tea'/> Tea. Which one would you like?
+    </template>
+  </category>
+  <category>
+    <pattern>NEGATION SWEET</pattern>
+    <template>
+      Understood, I will leave that one out. Which do you want for your <get name='tea'/> Tea: Sugar or Sweetener?
+    </template>
+  </category>
+
+  <!-- Error handling: both / unknown -->
+  <category><pattern>BOTH</pattern><template><srai>TOO MANY SWEETS</srai></template></category>
+  <category><pattern>SUGAR AND *</pattern><template><srai>TOO MANY SWEETS</srai></template></category>
+  <category><pattern>SWEETENER AND *</pattern><template><srai>TOO MANY SWEETS</srai></template></category>
+  <category><pattern>* SUGAR AND *</pattern><template><srai>TOO MANY SWEETS</srai></template></category>
+  <category><pattern>* SWEETENER AND *</pattern><template><srai>TOO MANY SWEETS</srai></template></category>
+  <category>
+    <pattern>TOO MANY SWEETS</pattern>
+    <template>I can add only one. Please choose Sugar or Sweetener.</template>
+  </category>
+  <category>
+    <pattern>*</pattern>
+    <template>
+      <random>
+        <li>Sorry, I did not understand that. Do you need Sugar or Sweetener?</li>
+        <li>Please reply with Sugar or Sweetener for your <get name='tea'/> Tea.</li>
+        <li>I did not catch that. Sugar or Sweetener?</li>
+      </random>
+    </template>
+  </category>
+
+</topic>
+
+</aiml>
